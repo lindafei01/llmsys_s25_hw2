@@ -300,8 +300,21 @@ def generate(model,
             # run the model with current token_ids, and predict the next token (gen_id)
             # hint: obtain the logits of next token, and take the argmax.
             gen_id = 0
-            raise NotImplementedError("Generation Function Not Implemented Yet")
+            # raise NotImplementedError("Generation Function Not Implemented Yet")
+            # 1. 将当前token_ids转换为tensor
+            current_ids = minitorch.tensor(token_ids, backend=backend)
+            current_ids = current_ids.view(1, -1) #添加batch维度
+
+            # 2. 通过模型获取下一个token的预测
+            logits = model(current_ids)
+            
+            # 3. 获取最后一个token的预测
+            next_token_logits = logits[0, -1, :] # shape: (vocab_size,)
+
+            # 4. 使用argmax获取下一个token id
+            gen_id = minitorch.argmax(next_token_logits).to_numpy()         
             # END ASSIGN2_2
+
 
             if gen_id == tokenizer.vocab[f'<eos_{tgt_key}>']:
                 break
