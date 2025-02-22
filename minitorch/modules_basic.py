@@ -127,9 +127,9 @@ class Linear(Module):
         batch, in_size = x.shape
         ### BEGIN YOUR SOLUTION
         # raise NotImplementedError
-        out = x @ self.weights
+        out = x @ self.weights.value
         if self.bias:
-            return out + self.bias
+            return out + self.bias.value
         return out
         ### END YOUR SOLUTION
 
