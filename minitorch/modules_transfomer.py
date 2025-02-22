@@ -210,7 +210,7 @@ class TransformerLayer(Module):
         self.ln_1 = LayerNorm1d(dim=n_embd, eps=ln_eps, backend=self.backend)
         self.attention = MultiHeadAttention(n_embd=n_embd, n_head=n_head, p_dropout=p_dropout, bias=bias, backend=self.backend)
         self.ln_2 = LayerNorm1d(dim=n_embd, eps=ln_eps, backend=self.backend)
-        self.ff = FeedForward(n_emdb=n_embd, middle_dim=4*n_embd, p_dropout=p_dropout, bias=bias, backend=self.backend)
+        self.ff = FeedForward(n_embd=n_embd, middle_dim=4*n_embd, p_dropout=p_dropout, bias=bias, backend=self.backend)
         ### END YOUR SOLUTION
 
     def forward(self, x):

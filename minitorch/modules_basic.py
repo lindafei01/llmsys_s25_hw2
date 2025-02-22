@@ -131,9 +131,27 @@ class Linear(Module):
         # batch, in_size = x.shape
         ### BEGIN YOUR SOLUTION
         # raise NotImplementedError
+        # out = x @ self.weights.value
+        # if self.has_bias:
+        #     return out + self.bias.value
+        # return out
+        orig_shape = x.shape
+        if len(orig_shape) == 3:
+            batch_size, seq_len, _ = orig_shape
+            # 重塑为2D进行矩阵乘法
+            x = x.view(batch_size * seq_len, self.in_size)
+        
+        # 执行矩阵乘法
         out = x @ self.weights.value
+        
+        # 添加偏置（如果有）
         if self.has_bias:
-            return out + self.bias.value
+            out = out + self.bias.value
+            
+        # 如果输入是3D，恢复原始形状
+        if len(orig_shape) == 3:
+            out = out.view(batch_size, seq_len, self.out_size)
+            
         return out
         ### END YOUR SOLUTION
 
@@ -170,12 +188,38 @@ class LayerNorm1d(Module):
         Output: 
             output - Tensor of shape (bs, dim)
         """
-        batch, dim = x.shape
-        ### BEGIN YOUR SOLUTION
-        # raise NotImplementedError
+        # batch, dim = x.shape
+        # batch = x.shape[0]
+        # ### BEGIN YOUR SOLUTION
+        # # raise NotImplementedError
+        # mean = x.mean(dim=1).view(batch, 1)
+        # var = x.var(dim=1).view(batch, 1)
+        # x_norm = (x - mean) / ((var + self.eps) ** (0.5))
+
+        # return x_norm * self.weights.value + self.bias.value
+                # 保存原始形状
+        orig_shape = x.shape
+        
+        # 如果输入是3D，将其重塑为2D进行处理
+        if len(orig_shape) == 3:
+            batch_size, seq_len, _ = orig_shape
+            x = x.view(batch_size * seq_len, self.dim)
+        
+        batch = x.shape[0]
+        
+        # 计算均值和方差
         mean = x.mean(dim=1).view(batch, 1)
         var = x.var(dim=1).view(batch, 1)
-        x_norm = (x - mean) / ((var + self.eps) ** (0.5))
-
-        return x_norm * self.weights.value + self.bias.value
+        
+        # 标准化
+        x_norm = (x - mean) / ((var + self.eps) ** 0.5)
+        
+        # 应用缩放和偏移
+        out = x_norm * self.weights.value + self.bias.value
+        
+        # 如果输入是3D，将输出恢复为原始形状
+        if len(orig_shape) == 3:
+            out = out.view(batch_size, seq_len, self.dim)
+            
+        return out
         ### END YOUR SOLUTION
