@@ -111,11 +111,14 @@ class MultiHeadAttention(Module):
         if self.causal:
             scores = scores + self.create_causal_mask(queries_len)
         
-        attn = softmax(scores, dim=-1)
+        attn = softmax(scores, dim=3)
         attn = self.dropout(attn)
         result = attn @ v # (batch_size, num_heads, seq_len, attn_hidden_dim)
 
-        result = result.permute(0, 2, 1, 3).view(batch_size, queries_len, self.n_embd)
+        result = result.contiguous()
+        result = result.permute(0, 2, 1, 3)
+        result = result.contiguous()
+        result = result.view(batch_size, queries_len, self.n_embd)
         return self.out_projection(result)
         ### END YOUR SOLUTION
 

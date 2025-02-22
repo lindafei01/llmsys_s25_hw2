@@ -34,10 +34,10 @@ class Embedding(Module):
         self.embedding_dim  = embedding_dim  # Embedding Dimension
         ### BEGIN YOUR SOLUTION
         # raise NotImplementedError
-        self.weight = Parameter(
+        self.weights = Parameter(
             tensor_from_numpy(
-            np.random.normal(0, 1, (num_embeddings, embedding_dim)).astype(np.float32),
-            backend=backend
+                np.random.normal(0, 1, (num_embeddings, embedding_dim)).astype(np.float32),
+                backend=backend
         )
     )
         ### END YOUR SOLUTION
@@ -55,8 +55,11 @@ class Embedding(Module):
         ### BEGIN YOUR SOLUTION
         # raise NotImplementedError
         x_one_hot = one_hot(x, self.num_embeddings)
-        return x_one_hot @ self.weight
+        x_flat = x_one_hot.view(bs * seq_len, self.num_embeddings)
+        out_flat = x_flat @ self.weights.value
+        return out_flat.view(bs, seq_len, self.embedding_dim)
         ### END YOUR SOLUTION
+
 
     
 class Dropout(Module):
@@ -83,6 +86,7 @@ class Dropout(Module):
         if not self.training:
             return x
         
+
         mask = tensor_from_numpy(np.random.binomial(1, 1 - self.p_dropout, x.shape).astype(np.float32), 
                                  backend=x.backend)
         return x * mask / (1 - self.p_dropout)
@@ -124,11 +128,11 @@ class Linear(Module):
         Returns:
             output : Tensor of shape (n, out_size)
         """
-        batch, in_size = x.shape
+        # batch, in_size = x.shape
         ### BEGIN YOUR SOLUTION
         # raise NotImplementedError
         out = x @ self.weights.value
-        if self.bias:
+        if self.has_bias:
             return out + self.bias.value
         return out
         ### END YOUR SOLUTION
@@ -171,7 +175,7 @@ class LayerNorm1d(Module):
         # raise NotImplementedError
         mean = x.mean(dim=1).view(batch, 1)
         var = x.var(dim=1).view(batch, 1)
-        x_norm = (x - mean) / (var + self.eps).sqrt()
+        x_norm = (x - mean) / ((var + self.eps) ** (0.5))
 
-        return x_norm * self.weights + self.bias
+        return x_norm * self.weights.value + self.bias.value
         ### END YOUR SOLUTION

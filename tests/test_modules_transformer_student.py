@@ -49,6 +49,7 @@ def test_multihead_attention_student(batch_size, queries_len, n_embd, num_heads,
     w_out_grad = load_numpy_array(os.path.join(test_dir, f'{test_str}_w_out_grad.npy'))
 
     X    = minitorch.tensor_from_numpy(data, backend, True)
+    # print("X.shape:", X.shape)
 
     layer = minitorch.MultiHeadAttention(n_embd, num_heads, True, p_dropout, bias=False, backend=backend)
     

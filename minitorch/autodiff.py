@@ -148,9 +148,9 @@ def backpropagate(variable: Variable, deriv: Any) -> None: # 函数接受任何�
         for parent, d in var.chain_rule(deriv):
             parent_id = parent.unique_id
             if parent_id not in derivatives:
-                derivatives[parent_id] = d
+                derivatives[parent_id] = 0.0 + d
             else:
-                derivatives[parent_id] += d
+                derivatives[parent_id] += 0.0 +d
 
     # raise NotImplementedError("Task Autodiff Not Implemented Yet")
     # END ASSIGN1_1
