@@ -347,10 +347,10 @@ def evaluate_bleu(examples, gen_sents, tgt_key):
 
 def main(dataset_name='bbaaaa/iwslt14-de-en-preprocess',
          model_max_length=40,
-         n_epochs=20,
+         n_epochs=1, # 20
          batch_size=128,
          learning_rate=0.02,
-         samples_per_epoch=20000,
+         samples_per_epoch=20, # 20000
          n_vocab=10000,
          n_embd=256,
          seed=11111):
