@@ -16,32 +16,58 @@ from minitorch import DecoderLM
 from minitorch.cuda_kernel_ops import CudaKernelOps
 
 
-def get_dataset(dataset_name, model_max_length):
+# def get_dataset(dataset_name, model_max_length):
+#     """
+#     Obtrain IWSLT (de-en) dataset.
+#     """
+#     dataset = {
+#         split: datasets.load_dataset(dataset_name, split=split)['translation']
+#         for split in ['train', 'validation', 'test']
+#     }
+#     src_key, tgt_key = 'de', 'en'
+
+#     dataset = {
+#         split: [
+#             example for example in dataset[split]
+#             if len(example[src_key].split()) + len(
+#                 example[tgt_key].split()) < model_max_length
+#         ] for split in dataset.keys()
+#     }
+
+#     dataset['test'] = dataset['test'][:100]  # 6750
+
+#     print(json.dumps(
+#         {'data_size': {split: len(dataset[split]) for split in dataset.keys()}},
+#         indent=4))
+
+#     return dataset, src_key, tgt_key
+
+def get_dataset(data_dir="../data/iwslt14", model_max_length=512):
     """
-    Obtrain IWSLT (de-en) dataset.
+    load IWSLT (de-en) dataset locally
     """
-    dataset = {
-        split: datasets.load_dataset(dataset_name, split=split)['translation']
-        for split in ['train', 'validation', 'test']
-    }
+    dataset = {}
+    for split in ['train', 'validation', 'test']:
+        file_path = os.path.join(data_dir, f"{split}.json")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            dataset[split] = json.load(f)
+    
     src_key, tgt_key = 'de', 'en'
 
     dataset = {
         split: [
             example for example in dataset[split]
-            if len(example[src_key].split()) + len(
-                example[tgt_key].split()) < model_max_length
+            if len(example[src_key].split()) + len(example[tgt_key].split()) < model_max_length
         ] for split in dataset.keys()
     }
 
-    dataset['test'] = dataset['test'][:100]  # 6750
+    dataset['test'] = dataset['test'][:100]
 
     print(json.dumps(
         {'data_size': {split: len(dataset[split]) for split in dataset.keys()}},
         indent=4))
 
     return dataset, src_key, tgt_key
-
 
 def get_tokenizer(examples, vocab_size, src_key, tgt_key, workdir):
     """
@@ -391,8 +417,11 @@ def main(dataset_name='bbaaaa/iwslt14-de-en-preprocess',
     model = DecoderLM(**config)
     optimizer = minitorch.Adam(model.parameters(), lr=learning_rate)
 
+    # dataset, src_key, tgt_key = get_dataset(
+    #     dataset_name=dataset_name, model_max_length=model_max_length)
+    
     dataset, src_key, tgt_key = get_dataset(
-        dataset_name=dataset_name, model_max_length=model_max_length)
+        data_dir="../data/iwslt14", model_max_length=model_max_length) # load local dataset
 
     tokenizer = get_tokenizer(
         examples=dataset['train'],
