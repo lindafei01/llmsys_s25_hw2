@@ -106,12 +106,12 @@ class Linear(Module):
         self.out_size = out_size
         ### BEGIN YOUR SOLUTION
         self.in_size = in_size
-        self.bias = bias
+        self.has_bias = bias
         bound = 1.0 / np.sqrt(in_size)
 
         self.weights = Parameter(rand((in_size, out_size), backend=backend) * (2 * bound) - bound)
 
-        if bias:
+        if self.has_bias:
             self.bias = Parameter(rand((out_size,), backend=backend) * (2 * bound) - bound)
         ### END YOUR SOLUTION
 
