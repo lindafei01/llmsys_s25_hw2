@@ -42,7 +42,7 @@ from minitorch.cuda_kernel_ops import CudaKernelOps
 
 #     return dataset, src_key, tgt_key
 
-def get_dataset(data_dir="../data/iwslt14", model_max_length=512):
+def get_dataset(data_dir="./data/iwslt14", model_max_length=512):
     """
     load IWSLT (de-en) dataset locally
     """
@@ -50,24 +50,35 @@ def get_dataset(data_dir="../data/iwslt14", model_max_length=512):
     for split in ['train', 'validation', 'test']:
         file_path = os.path.join(data_dir, f"{split}.json")
         with open(file_path, 'r', encoding='utf-8') as f:
+            print(file_path)
             dataset[split] = json.load(f)
     
     src_key, tgt_key = 'de', 'en'
 
-    dataset = {
-        split: [
-            example for example in dataset[split]
-            if len(example[src_key].split()) + len(example[tgt_key].split()) < model_max_length
-        ] for split in dataset.keys()
-    }
+    dataset_split = {'train':[], 'validation':[], 'test':[]}
+    for split in dataset.keys():
+        for example in dataset[split]:
+            try:
+                if len(example[src_key].split()) + len(example[tgt_key].split()) < model_max_length:
+                    dataset_split[split].append(example)
+            except:
+                pass
 
-    dataset['test'] = dataset['test'][:100]
+
+    # dataset = {
+    #     split: [
+    #         example for example in dataset[split]
+    #         if len(example[src_key].split()) + len(example[tgt_key].split()) < model_max_length
+    #     ] for split in dataset.keys()
+    # }
+
+    dataset_split['test'] = dataset_split['test'][:100]
 
     print(json.dumps(
-        {'data_size': {split: len(dataset[split]) for split in dataset.keys()}},
+        {'data_size': {split: len(dataset_split[split]) for split in dataset_split.keys()}},
         indent=4))
 
-    return dataset, src_key, tgt_key
+    return dataset_split, src_key, tgt_key
 
 def get_tokenizer(examples, vocab_size, src_key, tgt_key, workdir):
     """
@@ -328,17 +339,18 @@ def generate(model,
             gen_id = 0
             # raise NotImplementedError("Generation Function Not Implemented Yet")
             # 1. 将当前token_ids转换为tensor
-            current_ids = minitorch.tensor(token_ids, backend=backend)
-            current_ids = current_ids.view(1, -1) #添加batch维度
+            current_ids = minitorch.tensor([token_ids], backend=backend)
+            # current_ids = current_ids.view(1, -1) #添加batch维度
 
             # 2. 通过模型获取下一个token的预测
-            logits = model(current_ids)
+            logits = model(current_ids).to_numpy()
             
             # 3. 获取最后一个token的预测
-            next_token_logits = logits[0, -1, :] # shape: (vocab_size,)
+            next_token_logits = logits[0, -1, :] 
+            
 
             # 4. 使用argmax获取下一个token id
-            gen_id = minitorch.argmax(next_token_logits).to_numpy()         
+            gen_id = np.argmax(next_token_logits)         
             # END ASSIGN2_2
 
 
@@ -373,10 +385,10 @@ def evaluate_bleu(examples, gen_sents, tgt_key):
 
 def main(dataset_name='bbaaaa/iwslt14-de-en-preprocess',
          model_max_length=40,
-         n_epochs=1, # 20
+         n_epochs=20, # 20
          batch_size=128,
          learning_rate=0.02,
-         samples_per_epoch=20, # 20000
+         samples_per_epoch=20000, # 20000
          n_vocab=10000,
          n_embd=256,
          seed=11111):
@@ -421,7 +433,7 @@ def main(dataset_name='bbaaaa/iwslt14-de-en-preprocess',
     #     dataset_name=dataset_name, model_max_length=model_max_length)
     
     dataset, src_key, tgt_key = get_dataset(
-        data_dir="../data/iwslt14", model_max_length=model_max_length) # load local dataset
+        data_dir="./data/iwslt14", model_max_length=model_max_length) # load local dataset
 
     tokenizer = get_tokenizer(
         examples=dataset['train'],
