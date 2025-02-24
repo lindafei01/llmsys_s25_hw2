@@ -83,7 +83,7 @@ class Dropout(Module):
         """
         ### BEGIN YOUR SOLUTION
         # raise NotImplementedError
-        if not self.training:
+        if self.p_dropout == 0.0 or not self.training:
             return x
         
 
